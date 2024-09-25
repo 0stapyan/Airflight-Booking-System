@@ -14,38 +14,80 @@ public:
     string flightNumber;
     string date;
     string price;
+    int id;
     bool status;
 
     // Constructor
     Ticket(string n, string p, string d, string f)
-            : seatNumber(n), price(p), date(d), flightNumber(f), status(false) {
+            : seatNumber(n), price(p), date(d), flightNumber(f), status(false), id(0){
         passengerName = "";
     }
 };
 
 class Airplane {
-private:
-    string flightNumber;
-    string date;
-    vector<Ticket> bookedSeats;
 
 public:
+    string flightNumber;
+    string date;
+    map<int, Ticket> bookedSeats;
     vector<Ticket> seats;
 
-    Airplane(string flightNumber, string date, vector<Ticket> seats, map<string, string> seatPrices)
+    Airplane(string flightNumber, string date, vector<Ticket> seats)
             : flightNumber(flightNumber), date(date), seats(seats) {}
 };
 
-class FileReader {
-public:
-    int numberOfRecords;
-    int seatsPerRow;
-    string line;
-    vector<Ticket> tickets;
-    string seatRange;
-    string price;
 
-    void createSeats() {
+class BookingSystem {
+private:
+      void commandList();
+//
+      void check();
+//
+      void bookTicket();
+//
+//    void returnTicket();
+//
+//    void viewId();
+//
+//    void viewPassengerName();
+//
+//    void viewFlightNumber();
+
+    void createSeats();
+
+    string userInput;
+
+    string userCommand;
+
+    string userDate;
+
+    string userNumber;
+
+    string passenger;
+
+    string seat;
+
+    int currentTicketId = 1;
+
+    int ID;
+
+    string viewOption;
+
+public:
+    vector<Airplane> planes;
+
+    void run();
+
+};
+
+void BookingSystem::createSeats() {
+        int numberOfRecords;
+        int seatsPerRow;
+        string line;
+        vector<Ticket> tickets;
+        string seatRange;
+        string price;
+
         ifstream file("/Users/ostapturash/Documents/unik/oop/oop_1/info.txt");
         if (!file.is_open()) {
             cerr << "Error: Could not open file." << endl;
@@ -80,66 +122,17 @@ public:
                         tickets.push_back(ticket);
                     }
                 }
+                Airplane airplane(flightNumber, date, tickets);
+                planes.push_back(airplane);
             }
         }
 
         file.close();
-    }
+}
 
-    void displayTickets() const {
-        cout << "Tickets Information:" << endl;
-        for (const auto& ticket : tickets) {
-            cout << "Seat Number: " << ticket.seatNumber
-                 << ", Price: " << ticket.price
-                 << ", Date: " << ticket.date
-                 << ", Flight Number: " << ticket.flightNumber
-                 << ", Status: " << (ticket.status ? "Confirmed" : "Pending") << endl;
-        }
-    }
-};
-
-class BookingSystem {
-private:
-    void commandList();
-
-    void check();
-
-    void bookTicket();
-
-    void returnTicket();
-
-    void viewId();
-
-    void viewPassengerName();
-
-    void viewFlightNumber();
-
-    string userInput;
-
-    string userCommand;
-
-    string userDate;
-
-    string userNumber;
-
-    string passenger;
-
-    string seat;
-
-    int ID;
-
-    string viewOption;
-
-public:
-    vector<Airplane> planes;
-
-    void run();
-
-};
 
 void BookingSystem::run() {
-    FileReader fileReader;
-    fileReader.createSeats();
+    createSeats();
 
     while (true) {
         commandList();
@@ -165,18 +158,18 @@ void BookingSystem::run() {
                 break;
             case 3: // return
                 sss >> ID;
-                returnTicket();
+                //returnTicket();
                 break;
             case 4: // view
                 sss >> viewOption;
                 if (viewOption == "username") {
                     sss >> passenger;
-                    viewPassengerName();
+                    //viewPassengerName();
                 } else if (viewOption == "flight") {
                     sss >> userDate >> userNumber;
-                    viewFlightNumber();
+                    //viewFlightNumber();
                 } else {
-                    viewId();
+                    //viewId();
                 }
                 break;
             case 5: // exit
@@ -188,20 +181,53 @@ void BookingSystem::run() {
     }
 }
 
-void BookingSystem::check(){
-
+void BookingSystem::commandList() {
+    cout << """Please choose the command from the list:\n"
+              "1) check available places\n"
+              "2) book ticket\n"
+              "3) return ticket\n"
+              "4) view ID\n"
+              "5) view username\n"
+              "6) view flight number\n""" <<endl;
 }
+
+void BookingSystem::check(){
+    for (int i = 0; i < planes.size(); i++){
+        if (userDate==planes[i].date && userNumber==planes[i].flightNumber){
+            for (int j = 0; j < planes[i].seats.size(); j++){
+                if (!planes[i].seats[j].status){
+                    cout << planes[i].seats[j].seatNumber << " " << planes[i].seats[j].price << endl;
+                }
+            }
+        }
+    }
+}
+
+void BookingSystem::bookTicket() {
+    for (int i = 0; i < planes.size(); i++) {
+        if (userDate == planes[i].date && userNumber == planes[i].flightNumber) {
+            for (int j = 0; j < planes[i].seats.size(); j++) {
+                if (seat == planes[i].seats[j].seatNumber && !planes[i].seats[j].status) {
+                        planes[i].seats[j].status = true; // Mark the ticket as booked
+                        planes[i].seats[j].passengerName = passenger;
+                        planes[i].seats[j].id = currentTicketId;
+                        currentTicketId++;
+                        cout << "Ticket booked successfully for " << passenger << " on seat " << seat << ".\n";
+                        break;
+                    } else {
+                        cout << "Error: Seat " << seat << " is already booked.\n";
+                        break;
+                    }
+                }
+            }
+        break;
+        }
+    }
 
 int main() {
 
-    FileReader fileReader;
-    fileReader.createSeats();
-
-    if (!fileReader.tickets.empty()) {
-        fileReader.displayTickets();
-    } else {
-        cout << "No tickets created." << endl;
-    }
+    BookingSystem system;
+    system.run();
 
     return 0;
 }
