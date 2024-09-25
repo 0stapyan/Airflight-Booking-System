@@ -28,10 +28,11 @@ private:
     string flightNumber;
     string date;
     vector<Ticket> bookedSeats;
-    map<string, bool> seats;
 
 public:
-    Airplane(string flightNumber, string date, map<string, bool> seats, map<string, string> seatPrices)
+    vector<Ticket> seats;
+
+    Airplane(string flightNumber, string date, vector<Ticket> seats, map<string, string> seatPrices)
             : flightNumber(flightNumber), date(date), seats(seats) {}
 };
 
@@ -84,7 +85,112 @@ public:
 
         file.close();
     }
+
+    void displayTickets() const {
+        cout << "Tickets Information:" << endl;
+        for (const auto& ticket : tickets) {
+            cout << "Seat Number: " << ticket.seatNumber
+                 << ", Price: " << ticket.price
+                 << ", Date: " << ticket.date
+                 << ", Flight Number: " << ticket.flightNumber
+                 << ", Status: " << (ticket.status ? "Confirmed" : "Pending") << endl;
+        }
+    }
 };
+
+class BookingSystem {
+private:
+    void commandList();
+
+    void check();
+
+    void bookTicket();
+
+    void returnTicket();
+
+    void viewId();
+
+    void viewPassengerName();
+
+    void viewFlightNumber();
+
+    string userInput;
+
+    string userCommand;
+
+    string userDate;
+
+    string userNumber;
+
+    string passenger;
+
+    string seat;
+
+    int ID;
+
+    string viewOption;
+
+public:
+    vector<Airplane> planes;
+
+    void run();
+
+};
+
+void BookingSystem::run() {
+    FileReader fileReader;
+    fileReader.createSeats();
+
+    while (true) {
+        commandList();
+        getline(cin, userInput);
+        stringstream sss(userInput);
+        sss >> userCommand;
+
+        int commandNumber = -1;
+        if (userCommand == "check") commandNumber = 1;
+        else if (userCommand == "book") commandNumber = 2;
+        else if (userCommand == "return") commandNumber = 3;
+        else if (userCommand == "view") commandNumber = 4;
+        else if (userCommand == "exit") commandNumber = 5;
+
+        switch (commandNumber) {
+            case 1: // check
+                sss >> userDate >> userNumber;
+                check();
+                break;
+            case 2: // book
+                sss >> userDate >> userNumber >> seat >> passenger;
+                bookTicket();
+                break;
+            case 3: // return
+                sss >> ID;
+                returnTicket();
+                break;
+            case 4: // view
+                sss >> viewOption;
+                if (viewOption == "username") {
+                    sss >> passenger;
+                    viewPassengerName();
+                } else if (viewOption == "flight") {
+                    sss >> userDate >> userNumber;
+                    viewFlightNumber();
+                } else {
+                    viewId();
+                }
+                break;
+            case 5: // exit
+                return;
+            default: // Invalid command
+                cout << "\nThe input is incorrect!\n\n";
+                break;
+        }
+    }
+}
+
+void BookingSystem::check(){
+
+}
 
 int main() {
 
@@ -92,12 +198,9 @@ int main() {
     fileReader.createSeats();
 
     if (!fileReader.tickets.empty()) {
-        Ticket firstTicket = fileReader.tickets[0];
-        cout << "Seat Number: " << firstTicket.seatNumber << endl;
-        cout << "Price: " << firstTicket.price << endl;
-        cout << "Date: " << firstTicket.date << endl;
-        cout << "Flight Number: " << firstTicket.flightNumber << endl;
-        cout << "Status: " << (firstTicket.status ? "Confirmed" : "Pending") << endl;
+        fileReader.displayTickets();
+    } else {
+        cout << "No tickets created." << endl;
     }
 
     return 0;
